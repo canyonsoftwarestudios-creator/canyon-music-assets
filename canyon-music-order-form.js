@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded',function(){
+// Warmup ping: silently wake Render server on page load so it's ready by submit time.
+fetch('https://canyon-music-webhook.onrender.com/ping',{method:'GET',cache:'no-store'}).catch(function(){});
+
 (function(){
   function gO(){var t=Date.now().toString(36).toUpperCase().slice(-5),r=Math.random().toString(36).toUpperCase().slice(2,5);return'CM-'+t+r;}
   function g(id){return document.getElementById(id);}
