@@ -6,7 +6,7 @@ fetch('https://canyon-music-webhook.onrender.com/ping',{method:'GET',cache:'no-s
   function gO(){var t=Date.now().toString(36).toUpperCase().slice(-5),r=Math.random().toString(36).toUpperCase().slice(2,5);return'CM-'+t+r;}
   function g(id){return document.getElementById(id);}
   var form=g('cmForm'),btn=g('cmBtn'),succ=g('cmSuccess'),oNum=g('cmOrderNum'),fErr=g('cmFErr');
-  var svc=g('cmSvc'),stWrap=g('cf-studio'),stIn=g('cmStudio'),songList=g('cmSongList'),addBtn=g('cmAddSong');
+  var svc=g('cmSvc'),songList=g('cmSongList'),addBtn=g('cmAddSong');
   var sc=0;
 
   function mkSong(){
@@ -79,10 +79,6 @@ fetch('https://canyon-music-webhook.onrender.com/ping',{method:'GET',cache:'no-s
     if(entry){entry.remove();refreshLabels();}
   });
 
-  svc.addEventListener('change',function(){
-    stWrap.classList[svc.value==='Studio Bundle'?'add':'remove']('visible');
-  });
-
   function vEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());}
   function setErr(id,on){var el=g(id);if(el)el.classList[on?'add':'remove']('has-error');}
 
@@ -110,7 +106,6 @@ fetch('https://canyon-music-webhook.onrender.com/ping',{method:'GET',cache:'no-s
     if(!g('cmName').value.trim()){setErr('cf-name',true);ok=false;}else setErr('cf-name',false);
     if(!vEmail(g('cmEmail').value)){setErr('cf-email',true);ok=false;}else setErr('cf-email',false);
     if(!svc.value){setErr('cf-svc',true);ok=false;}else setErr('cf-svc',false);
-    if(stWrap.classList.contains('visible')&&!stIn.value.trim()){setErr('cf-studio',true);ok=false;}else setErr('cf-studio',false);
     if(!valSongs())ok=false;
     return ok;
   }
