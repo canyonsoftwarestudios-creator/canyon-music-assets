@@ -5,6 +5,7 @@ fetch('https://canyon-music-webhook.onrender.com/ping',{method:'GET',cache:'no-s
 (function(){
   function gO(){var t=Date.now().toString(36).toUpperCase().slice(-5),r=Math.random().toString(36).toUpperCase().slice(2,5);return'CM-'+t+r;}
   function g(id){return document.getElementById(id);}
+
   var form=g('cmForm'),btn=g('cmBtn'),succ=g('cmSuccess'),oNum=g('cmOrderNum'),fErr=g('cmFErr');
   var svc=g('cmSvc'),songList=g('cmSongList'),addBtn=g('cmAddSong');
   var sc=0;
@@ -20,38 +21,24 @@ fetch('https://canyon-music-webhook.onrender.com/ping',{method:'GET',cache:'no-s
       '</div>'+
       '<div class="cm-song-grid">'+
         '<div class="cm-field cm-song-full" id="csf-'+i+'-title">'+
-          '<label>Song Title <span class="cm-req">*</span></label>'+
+          '<label>Song Title <span class="cm-required">*</span></label>'+
           '<input type="text" name="songs['+i+'][title]" placeholder="e.g. Lose Yourself"/>'+
-          '<span class="cm-err">Please enter the song title.</span>'+
+          '<span class="cm-error">Please enter the song title.</span>'+
         '</div>'+
         '<div class="cm-field" id="csf-'+i+'-artist">'+
-          '<label>Artist <span class="cm-req">*</span></label>'+
+          '<label>Artist <span class="cm-required">*</span></label>'+
           '<input type="text" name="songs['+i+'][artist]" placeholder="e.g. Eminem"/>'+
-          '<span class="cm-err">Please enter the artist.</span>'+
+          '<span class="cm-error">Please enter the artist.</span>'+
         '</div>'+
         '<div class="cm-field" id="csf-'+i+'-edit">'+
-          '<label>Edit Type <span class="cm-req">*</span></label>'+
+          '<label>Edit Type <span class="cm-required">*</span></label>'+
           '<select name="songs['+i+'][edit_type]">'+
             '<option value="" disabled selected>Select edit type</option>'+
             '<option value="Basic Cut">Basic Cut (single song)</option>'+
             '<option value="Multi-Song Edit">Multi-Song Edit (2-3 songs)</option>'+
             '<option value="Production Quote">Production Edit (4+ songs)</option>'+
           '</select>'+
-          '<span class="cm-err">Please select an edit type.</span>'+
-        '</div>'+
-        '<div class="cm-field" id="csf-'+i+'-style">'+
-          '<label>Dance Style <span class="cm-req">*</span></label>'+
-          '<input type="text" name="songs['+i+'][style]" placeholder="e.g. Contemporary, Hip Hop"/>'+
-          '<span class="cm-err">Please enter the dance style.</span>'+
-        '</div>'+
-        '<div class="cm-field" id="csf-'+i+'-level">'+
-          '<label>Level <span class="cm-req">*</span></label>'+
-          '<select name="songs['+i+'][level]">'+
-            '<option value="" disabled selected>Select level</option>'+
-            '<option>Mini</option><option>Youth</option><option>Junior</option>'+
-            '<option>Teen</option><option>Senior</option><option>Adult</option>'+
-          '</select>'+
-          '<span class="cm-err">Please select a level.</span>'+
+          '<span class="cm-error">Please select an edit type.</span>'+
         '</div>'+
         '<div class="cm-field cm-song-full">'+
           '<label>Song Notes <span class="cm-opt">(optional)</span></label>'+
@@ -86,17 +73,14 @@ fetch('https://canyon-music-webhook.onrender.com/ping',{method:'GET',cache:'no-s
     var ok=true;
     songList.querySelectorAll('.cm-song-entry').forEach(function(entry){
       var i=entry.dataset.si;
-      ['title','artist','style'].forEach(function(f){
+      ['title','artist'].forEach(function(f){
         var inp=entry.querySelector('[name="songs['+i+']['+f+']"]');
         var fid='csf-'+i+'-'+f;
         if(!inp||!inp.value.trim()){setErr(fid,true);ok=false;}else setErr(fid,false);
       });
-      ['edit_type','level'].forEach(function(f){
-        var k=f==='edit_type'?'edit':'level';
-        var inp=entry.querySelector('[name="songs['+i+']['+f+']"]');
-        var fid='csf-'+i+'-'+k;
-        if(!inp||!inp.value){setErr(fid,true);ok=false;}else setErr(fid,false);
-      });
+      var editInp=entry.querySelector('[name="songs['+i+'][edit_type]"]');
+      var editFid='csf-'+i+'-edit';
+      if(!editInp||!editInp.value){setErr(editFid,true);ok=false;}else setErr(editFid,false);
     });
     return ok;
   }
@@ -113,19 +97,25 @@ fetch('https://canyon-music-webhook.onrender.com/ping',{method:'GET',cache:'no-s
   function buildPayload(on){
     var p={order_number:on};
     new FormData(form).forEach(function(v,k){
-      if(k!=='_hp'&&!k.startsWith('songs['))p[k]=v;
+      if(k!=='_hp'&&!k.startsWith('songs[')&&!k.startsWith('addon_'))p[k]=v;
     });
+    // Collect add-ons
+    var addons=[];
+    ['addon_rush','addon_mashup','addon_fx'].forEach(function(name){
+      var el=form.querySelector('[name="'+name+'"]');
+      if(el&&el.checked)addons.push(el.value);
+    });
+    p.add_ons=addons;
+    // Collect songs
     var songs=[];
     songList.querySelectorAll('.cm-song-entry').forEach(function(entry,idx){
       var i=entry.dataset.si,s={song_number:idx+1};
-      ['title','artist','style','notes'].forEach(function(f){
+      ['title','artist','notes'].forEach(function(f){
         var inp=entry.querySelector('[name="songs['+i+']['+f+']"]');
         if(inp)s[f]=inp.value.trim();
       });
-      ['edit_type','level'].forEach(function(f){
-        var inp=entry.querySelector('[name="songs['+i+']['+f+']"]');
-        if(inp)s[f]=inp.value;
-      });
+      var editInp=entry.querySelector('[name="songs['+i+'][edit_type]"]');
+      if(editInp)s['edit_type']=editInp.value;
       songs.push(s);
     });
     p.songs=songs;p.num_songs=songs.length;
